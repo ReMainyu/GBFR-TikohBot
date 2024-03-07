@@ -23,11 +23,11 @@ class Assist:
     def __init__(self):
         self.is_active = False
         self.HOTKEYS = [
-            HotKey(HotKey.parse('<ctrl>+q'), self.force_quit),
-            HotKey(HotKey.parse('r+1'), lambda: self.moveToPOI(TOWN_SHORTCUTS.QUEST_COUNTER.value)),
-            HotKey(HotKey.parse('r+2'), lambda: self.moveToPOI(TOWN_SHORTCUTS.BLACKSMITH.value)),
-            HotKey(HotKey.parse('r+3'), lambda: self.moveToPOI(TOWN_SHORTCUTS.SIERO.value)),
-            HotKey(HotKey.parse('r+4'), lambda: self.moveToPOI(TOWN_SHORTCUTS.ZATHBA.value))]
+            HotKey(HotKey.parse('<ctrl>+q'), exit),
+            HotKey(HotKey.parse('r+1'), lambda: self.move_to_POI(TOWN_SHORTCUTS.QUEST_COUNTER.value)),
+            HotKey(HotKey.parse('r+2'), lambda: self.move_to_POI(TOWN_SHORTCUTS.BLACKSMITH.value)),
+            HotKey(HotKey.parse('r+3'), lambda: self.move_to_POI(TOWN_SHORTCUTS.SIERO.value)),
+            HotKey(HotKey.parse('r+4'), lambda: self.move_to_POI(TOWN_SHORTCUTS.ZATHBA.value))]
 
     def autofire(self):
         '''Press and hold left click in accordance to Rackam's perfect primary attack timing'''
@@ -36,17 +36,7 @@ class Assist:
             time.sleep(0.6)
             pydirectinput.mouseUp()
 
-    def moveToPOI(self, repeat):
-        pydirectinput.press('r')
-        pydirectinput.press('enter')
-        pydirectinput.press('down', presses=repeat, interval=0.1)
-        pydirectinput.press('enter')
-        pydirectinput.keyDown('w')
-        time.sleep(1.6)
-        pydirectinput.keyUp('w')
-        pydirectinput.press('f')
-
-    def basicSlimeBlasting(self):
+    def basic_slimeblast(self):
         '''Selects and move into postion for slime blasting'''
         location = randint(0, 3)
         match location:
@@ -72,9 +62,20 @@ class Assist:
                 pass
 
         self.autofire()
+        
+    def move_to_POI(self, repeat):
+        pydirectinput.press('r')
+        pydirectinput.press('enter')
+        pydirectinput.press('down', presses=repeat, interval=0.1)
+        pydirectinput.press('enter')
+        pydirectinput.keyDown('w')
+        time.sleep(1.6)
+        pydirectinput.keyUp('w')
+        pydirectinput.press('f')
 
-    def force_quit(self):
-        exit()
+    def auto_transmute(self):
+        while self.is_active:
+            pydirectinput.press('enter')
 
     def on_press(self, key):
         match key:
@@ -86,7 +87,12 @@ class Assist:
             case Key.f2:
                 self.is_active = not self.is_active
                 if self.is_active:
-                    thread = threading.Thread(target=self.basicSlimeBlasting)
+                    thread = threading.Thread(target=self.basic_slimeblast)
+                    thread.start()
+            case Key.f5:
+                self.is_active = not self.is_active
+                if self.is_active:
+                    thread = threading.Thread(target=self.auto_transmute)
                     thread.start()
             case _:
                 for hotkey in self.HOTKEYS:
