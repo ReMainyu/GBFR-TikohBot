@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-__author__      = "ReMainyu"
+__author__      = 'ReMainyu'
 
 import time
 import threading
@@ -7,86 +7,101 @@ from enum import Enum
 from random import randint
 
 import pydirectinput
-from pynput import keyboard
-from pynput.keyboard import Listener
+from pynput.keyboard import Key, HotKey, Listener
 
-is_active = False
 pydirectinput.FAILSAFE = False
+pydirectinput.PAUSE = 0.05
 
-class POI(Enum):
+class TOWN_SHORTCUTS(Enum):
     QUEST_COUNTER = 0
     BLACKSMITH = 1
     SIERO = 2
     ZATHBA = 3
     DOCKS = 4
 
-def on_press(key):
-    global is_active
-    match key:
-        case keyboard.Key.f1:
-            is_active = not is_active
-            if is_active:
-                thread = threading.Thread(target=autofire)
-                thread.start()
-        case keyboard.Key.f2:
-            is_active = not is_active
-            if is_active:
-                thread = threading.Thread(target=basicSlimeBlasting)
-                thread.start()
-        case keyboard.Key.f3:
-            moveToPOI(0)
-        case keyboard.Key.f5:
-            exit()
-    
-def autofire():
-    '''Press and hold left click in accordance to Rackam's perfect primary attack timing'''
-    while is_active:
-        pydirectinput.mouseDown()
-        time.sleep(0.55)
-        pydirectinput.mouseUp()
+class Assist:
+    def __init__(self):
+        self.is_active = False
+        self.HOTKEYS = [
+            HotKey(HotKey.parse('<ctrl>+q'), self.force_quit),
+            HotKey(HotKey.parse('r+1'), lambda: self.moveToPOI(TOWN_SHORTCUTS.QUEST_COUNTER.value)),
+            HotKey(HotKey.parse('r+2'), lambda: self.moveToPOI(TOWN_SHORTCUTS.BLACKSMITH.value)),
+            HotKey(HotKey.parse('r+3'), lambda: self.moveToPOI(TOWN_SHORTCUTS.SIERO.value)),
+            HotKey(HotKey.parse('r+4'), lambda: self.moveToPOI(TOWN_SHORTCUTS.ZATHBA.value))]
 
-def moveToPOI(order):
-    pydirectinput.press("r")
-    pydirectinput.press("enter")
-    for i in range(order):
-        pydirectinput.press("down")
-    pydirectinput.press("enter")
+    def autofire(self):
+        '''Press and hold left click in accordance to Rackam's perfect primary attack timing'''
+        while self.is_active:
+            pydirectinput.mouseDown()
+            time.sleep(0.6)
+            pydirectinput.mouseUp()
 
-    pydirectinput.keyDown("w")
-    time.sleep(1.4)
-    pydirectinput.keyUp("w")
-    pydirectinput.press("f")
+    def moveToPOI(self, repeat):
+        pydirectinput.press('r')
+        pydirectinput.press('enter')
+        pydirectinput.press('down', presses=repeat, interval=0.1)
+        pydirectinput.press('enter')
+        pydirectinput.keyDown('w')
+        time.sleep(1.6)
+        pydirectinput.keyUp('w')
+        pydirectinput.press('f')
 
-def basicSlimeBlasting():
-    '''Selects and move into postion for slime blasting'''
-    location = randint(0, 3)
-    print(location)
-    match location:
-        case 1:
-            pydirectinput.keyDown("w")
-            time.sleep(6.25)
-            pydirectinput.keyUp("w")
-        case 2:
-            pydirectinput.keyDown("w")
-            time.sleep(2.8)
-            pydirectinput.keyDown("a")
-            time.sleep(2.1)
-            pydirectinput.keyUp("w")
-            pydirectinput.keyUp("a")
-        case 3:
-            pydirectinput.keyDown("w")
-            time.sleep(2.8)
-            pydirectinput.keyDown("d")
-            time.sleep(2.1)
-            pydirectinput.keyUp("w")
-            pydirectinput.keyUp("d")
-        case _:
-            pass
+    def basicSlimeBlasting(self):
+        '''Selects and move into postion for slime blasting'''
+        location = randint(0, 3)
+        match location:
+            case 1:
+                pydirectinput.keyDown('w')
+                time.sleep(6.25)
+                pydirectinput.keyUp('w')
+            case 2:
+                pydirectinput.keyDown('w')
+                time.sleep(2.9)
+                pydirectinput.keyDown('a')
+                time.sleep(2.2)
+                pydirectinput.keyUp('w')
+                pydirectinput.keyUp('a')
+            case 3:
+                pydirectinput.keyDown('w')
+                time.sleep(2.9)
+                pydirectinput.keyDown('d')
+                time.sleep(2.2)
+                pydirectinput.keyUp('w')
+                pydirectinput.keyUp('d')
+            case _:
+                pass
 
-    autofire()
+        self.autofire()
 
-with Listener(on_press=on_press) as listener:
-    try:
-        listener.join()
-    except Exception as e:
-        print('{0} was pressed'.format(e.args[0]))
+    def force_quit(self):
+        exit()
+
+    def on_press(self, key):
+        match key:
+            case Key.f1:
+                self.is_active = not self.is_active
+                if self.is_active:
+                    thread = threading.Thread(target=self.autofire)
+                    thread.start()
+            case Key.f2:
+                self.is_active = not self.is_active
+                if self.is_active:
+                    thread = threading.Thread(target=self.basicSlimeBlasting)
+                    thread.start()
+            case _:
+                for hotkey in self.HOTKEYS:
+                    hotkey.press(listener.canonical(key))
+            
+    def on_release(self, key):
+        for hotkey in self.HOTKEYS:
+            hotkey.release(listener.canonical(key))
+
+if __name__ == '__main__':
+    assist = Assist()
+
+    with Listener(on_press=assist.on_press,
+                  on_release=assist.on_release) as listener:
+        try:
+            listener.join()
+        except Exception as e:
+            print('{0} was pressed'.format(e.args[0]))
