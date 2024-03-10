@@ -25,6 +25,7 @@ class Assist:
     def __init__(self):
         self.mem = pymem.Pymem('granblue_fantasy_relink.exe')
         self.is_active = False
+        self.enable_skip = False
         self.HOTKEYS = [
             HotKey(HotKey.parse('<ctrl>+q'), exit),
             HotKey(HotKey.parse('r+1'), lambda: self.move_to_POI(TOWN_SHORTCUTS.QUEST_COUNTER.value)),
@@ -104,6 +105,13 @@ class Assist:
         offsets = [0x4A0]
         self.mem.write_int(self.get_pointer_address(self.mem.base_address + 0x06772160, offsets), 1)
 
+    def skip_chests(self):
+        while self.enable_skip:
+            offsets = [0x1D0, 0x4F4]
+            a = self.mem.read_float(self.get_pointer_address(self.mem.base_address + 0x05CEC108, offsets))
+            if a > 10:
+                self.mem.write_float(self.get_pointer_address(self.mem.base_address + 0x05CEC108, offsets), 0.0)
+
     def on_press(self, key):
         match key:
             case Key.f1:
@@ -128,6 +136,11 @@ class Assist:
                     thread.start()
             case Key.f7:
                 self.reset_quest_counter()
+            case Key.f8:
+                self.enable_skip = not self.enable_skip
+                if self.enable_skip:
+                    thread = threading.Thread(target=self.skip_chests)
+                    thread.start()
             case _:
                 for hotkey in self.HOTKEYS:
                     hotkey.press(listener.canonical(key))
