@@ -26,6 +26,7 @@ class Assist:
         self.mem = pymem.Pymem('granblue_fantasy_relink.exe')
         self.is_active = False
         self.enable_skip = False
+        self.enable_quest_repeat = False
         self.HOTKEYS = [
             HotKey(HotKey.parse('<ctrl>+q'), exit),
             HotKey(HotKey.parse('r+1'), lambda: self.move_to_POI(TOWN_SHORTCUTS.QUEST_COUNTER.value)),
@@ -100,17 +101,26 @@ class Assist:
                 remote_pointer = RemotePointer(self.mem.process_handle, remote_pointer.value + offset)
             else:
                 return remote_pointer.value + offset
-        
-    def reset_quest_counter(self):
-        offsets = [0x4A0]
-        self.mem.write_int(self.get_pointer_address(self.mem.base_address + 0x06772160, offsets), 1)
 
-    def skip_chests(self):
+    def skip_rewards(self):
         while self.enable_skip:
-            offsets = [0x1D0, 0x4F4]
-            a = self.mem.read_float(self.get_pointer_address(self.mem.base_address + 0x05CEC108, offsets))
-            if a > 10:
-                self.mem.write_float(self.get_pointer_address(self.mem.base_address + 0x05CEC108, offsets), 0.0)
+            chest_timer_offsets = [0x1D0, 0x4F4]
+            result_timer_offsets = [0x2C8, 0x60, 0x70, 0x0, 0x88]
+            repeat_counter_offsets = [0x4A0]
+
+            try:
+                chest_timer_ptr_value = self.mem.read_float(self.get_pointer_address(self.mem.base_address + 0x05CEC108, chest_timer_offsets))
+                result_timer_ptr_value = self.mem.read_float(self.get_pointer_address(self.mem.base_address + 0x067323B8, result_timer_offsets))
+
+                if chest_timer_ptr_value > 10:
+                    self.mem.write_float(self.get_pointer_address(self.mem.base_address + 0x05CEC108, chest_timer_offsets), 0.0)
+                    if self.enable_quest_repeat:
+                        self.mem.write_int(self.get_pointer_address(self.mem.base_address + 0x06772160, repeat_counter_offsets), 8)
+                
+                if result_timer_ptr_value > 28 and result_timer_ptr_value < 30:
+                    self.mem.write_float(self.get_pointer_address(self.mem.base_address + 0x067323B8, result_timer_offsets), 5.0)
+            except:
+                pass
 
     def on_press(self, key):
         match key:
@@ -129,18 +139,18 @@ class Assist:
                 if self.is_active:
                     thread = threading.Thread(target=self.queue_slimepede)
                     thread.start()
-            case Key.f6:
+            case Key.f4:
                 self.is_active = not self.is_active
                 if self.is_active:
                     thread = threading.Thread(target=self.auto_transmute)
                     thread.start()
-            case Key.f7:
-                self.reset_quest_counter()
-            case Key.f8:
+            case Key.f6:
                 self.enable_skip = not self.enable_skip
                 if self.enable_skip:
-                    thread = threading.Thread(target=self.skip_chests)
+                    thread = threading.Thread(target=self.skip_rewards)
                     thread.start()
+            case Key.f7:
+                self.enable_quest_repeat = not self.enable_quest_repeat
             case _:
                 for hotkey in self.HOTKEYS:
                     hotkey.press(listener.canonical(key))
@@ -156,5 +166,5 @@ if __name__ == '__main__':
                   on_release=assist.on_release) as listener:
         try:
             listener.join()
-        except Exception as e:
-            print('{0} was pressed'.format(e.args[0]))
+        except:
+            pass

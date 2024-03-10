@@ -1,12 +1,28 @@
 # GBFR Grinding Assistant
 
-This script is designed to alleviate the repetitive aspect in the GBFR. It ensures a carpal tunnel-free experience by flawlessly execute Rackam's shots in any quest but works best in Slimepede. Additionally, it includes macros that automate transmutation and simplifies getting around town.
+This script is designed to alleviate the repetitive aspect of GBFR. It supports automation and shortcuts to enhance the experience and to eliminate Carpal Tunnel Syndrome.
 
-## Controls and Features
+## Features
+
+- Automates perfect Rackam's shots in any quest, but works best in Slimepede.
+- Shortcut for using fast travel to interact with NPCs and for starting Slimepede.
+- Automates transmutation and transmarvel.
+- Reduces chest opening timer and quest result timer.
+- Start or stop quest from repeating indefinitely.
+
+## Disclaimer
+
+Script has been tested in closed party and offline mode.
+Timer for macros are tested on 60 FPS, and will have a different result at 30/120 FPS.
+
+## Controls
 
 - F1: Activates automatic fire for Rackam.
 - F2: Moves to one of the four designated positions before activating automatic fire.
-- F5: Simply mashes the enter key. Be sure to select the right transmutation level or transmarvel before activating F5.
+- F3: Selects and starts Slimepede quest.
+- F4: Simply mashes the enter key. Be sure to select the right transmutation level or transmarvel before activating F4.
+- F6: Turns chest opening timer to 0s and quest result page to 5s.
+- F7: Resets the quest repeat counter.
 - r + 1: Uses fast travel to move and interact with the Quest Counter and talk to the npc.
 - r + 2: Uses fast travel to move and interact with the Blacksmith.
 - r + 3: Uses fast travel to move interact with Sierokarte.
