@@ -11,15 +11,14 @@ This script is designed to alleviate the repetitive aspect in the GBFR. It ensur
 - r + 2: Uses fast travel to move and interact with the Blacksmith.
 - r + 3: Uses fast travel to move interact with Sierokarte.
 - r + 4: Uses fast travel to move interact with Zathba.
-- Ctrl + q: Force quits the script
+- Ctrl + q: Force quits the script.
 
 ## Setup
 
 Install [Python] if you don't have it on your system.
 Open up the command prompt(cmd) and run the following commands to install the dependencies:
 ```sh
-pip install pydirectinput
-pip install pynput
+pip install -r requirements.txt
 ```
 
 [Python]: <https://www.python.org/downloads>

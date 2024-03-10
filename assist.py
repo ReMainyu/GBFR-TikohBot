@@ -6,6 +6,8 @@ import threading
 from enum import Enum
 from random import randint
 
+from pymem import *
+from pymem.ptypes import RemotePointer
 import pydirectinput
 from pynput.keyboard import Key, HotKey, Listener
 
@@ -21,6 +23,7 @@ class TOWN_SHORTCUTS(Enum):
 
 class Assist:
     def __init__(self):
+        self.mem = pymem.Pymem('granblue_fantasy_relink.exe')
         self.is_active = False
         self.HOTKEYS = [
             HotKey(HotKey.parse('<ctrl>+q'), exit),
@@ -76,6 +79,30 @@ class Assist:
     def auto_transmute(self):
         while self.is_active:
             pydirectinput.press('enter')
+    
+    def queue_slimepede(self):
+        pydirectinput.press('e')
+        pydirectinput.press('up')
+        pydirectinput.press('enter')
+        pydirectinput.press('q')
+        pydirectinput.press('enter')
+        pydirectinput.press('enter')
+        pydirectinput.press('enter')
+        time.sleep(2.5)
+        pydirectinput.press('3')
+        pydirectinput.press('enter')
+
+    def get_pointer_address(self,base, offsets):
+        remote_pointer = RemotePointer(self.mem.process_handle, base)
+        for offset in offsets:
+            if offset != offsets[-1]:
+                remote_pointer = RemotePointer(self.mem.process_handle, remote_pointer.value + offset)
+            else:
+                return remote_pointer.value + offset
+        
+    def reset_quest_counter(self):
+        offsets = [0x4A0]
+        self.mem.write_int(self.get_pointer_address(self.mem.base_address + 0x06772160, offsets), 1)
 
     def on_press(self, key):
         match key:
@@ -89,11 +116,18 @@ class Assist:
                 if self.is_active:
                     thread = threading.Thread(target=self.basic_slimeblast)
                     thread.start()
-            case Key.f5:
+            case Key.f3:
+                self.is_active = not self.is_active
+                if self.is_active:
+                    thread = threading.Thread(target=self.queue_slimepede)
+                    thread.start()
+            case Key.f6:
                 self.is_active = not self.is_active
                 if self.is_active:
                     thread = threading.Thread(target=self.auto_transmute)
                     thread.start()
+            case Key.f7:
+                self.reset_quest_counter()
             case _:
                 for hotkey in self.HOTKEYS:
                     hotkey.press(listener.canonical(key))
