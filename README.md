@@ -22,8 +22,6 @@ Script has been tested in closed matchmaking and offline mode.
 
 Timer for macros are tested on 60FPS, and will have a different result at 30FPS or 120FPS.
 
-Full auto mode is hardcoded to select Slimepede from a new boot. Therefore, if you have viewed a mission, it will likely select something else.
-
 ## Setup
 
 Install [Python] if you don't have it on your system.
