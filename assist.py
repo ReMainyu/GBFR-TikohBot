@@ -36,6 +36,7 @@ class Assist:
         self.is_active = False
         self.enable_skip = False
         self.enable_quest_repeat = False
+
         self.HOTKEYS = [
             HotKey(HotKey.parse('<ctrl>+q'), exit),
             HotKey(HotKey.parse('r+1'), lambda: self.move_to_POI(TOWN_SHORTCUTS.QUEST_COUNTER.value)),
@@ -44,16 +45,17 @@ class Assist:
             HotKey(HotKey.parse('r+4'), lambda: self.move_to_POI(TOWN_SHORTCUTS.ZATHBA.value))]
 
     def autofire(self):
-        '''Press and hold left click in accordance to Rackam's perfect primary attack timing'''
+        '''Press and hold left click in accordance to Rackam's perfect primary attack timing.'''
         while self.is_active:
             pydirectinput.mouseDown()
             time.sleep(0.6)
             pydirectinput.mouseUp()
 
     def basic_slimeblast(self, location=None):
-        '''Selects and move into postion for slime blasting'''
+        '''Selects and move into postion for slime blasting.'''
         if location == None:
             location = randint(0, 3)
+
         match location:
             case 0:
                 pydirectinput.keyDown('w')
@@ -74,11 +76,14 @@ class Assist:
                 pydirectinput.keyUp('w')
                 pydirectinput.keyUp('d')
             case _:
-                pass
+                pydirectinput.keyDown('w')
+                time.sleep(2.2)
+                pydirectinput.keyUp('w')
 
         self.autofire()
     
     def move_to_POI(self, repeat):
+        '''Uses the in-game fast travel to get to the POI, move towards it and use the interact key.'''
         pydirectinput.press('r')
         pydirectinput.press('enter')
         pydirectinput.press('down', presses=repeat, interval=0.1)
@@ -89,6 +94,7 @@ class Assist:
         pydirectinput.press('f')
 
     def queue_slimepede(self):
+        '''Upon interacting with the quest counter, call this to select Slimepede and begin the mission.'''
         pydirectinput.press('enter')
         pydirectinput.press('e')
         pydirectinput.press('up')
@@ -102,23 +108,25 @@ class Assist:
         pydirectinput.press('enter')
 
     def auto_transmute(self):
+        '''Simply mashes the enter key.'''
         while self.is_active:
             pydirectinput.press('enter')
     
     def full_auto_slimepede(self):
         self.move_to_POI(0)
         time.sleep(1.5)
-        self.queue_slimepede(0)
+        self.queue_slimepede()
 
         while self.is_active:
             try:
                 chest_timer_ptr_value = self.mem.read_float(self.get_pointer_address(self.mem.base_address + 0x05CEC108, QUEST_TIMER_OFFSETS))
                 if chest_timer_ptr_value > 178 and chest_timer_ptr_value < 180:
-                    threading.Thread(target=self.basic_slimeblast).start()
+                    threading.Thread(target=lambda: self.basic_slimeblast(0)).start()
                     time.sleep(180)
                     self.is_active = False
                     time.sleep(33)
                     self.is_active = True
+
             except:
                 pass
 
@@ -130,19 +138,25 @@ class Assist:
             else:
                 return remote_pointer.value + offset
 
-    def skip_rewards(self):
-        while self.enable_skip:
+    def polling_for_rewards(self):
+        '''Continue polling for timer values and flags and react accordingly.'''
+        while True:
             try:
                 chest_timer_ptr_value = self.mem.read_float(self.get_pointer_address(self.mem.base_address + 0x05CEC108, CHEST_TIMER_OFFSETS))
                 result_timer_ptr_value = self.mem.read_float(self.get_pointer_address(self.mem.base_address + 0x067323B8, RESULT_TIMER_OFFSETS))
 
                 if chest_timer_ptr_value > 10:
-                    self.mem.write_float(self.get_pointer_address(self.mem.base_address + 0x05CEC108, CHEST_TIMER_OFFSETS), 0.0)
+                    if self.enable_skip:
+                        self.mem.write_float(self.get_pointer_address(self.mem.base_address + 0x05CEC108, CHEST_TIMER_OFFSETS), 0.0)
+
                     if self.enable_quest_repeat:
+                        print(self.mem.read_int(self.get_pointer_address(self.mem.base_address + 0x06772160, REPEAT_COUNTER_OFFSETS)))
                         self.mem.write_int(self.get_pointer_address(self.mem.base_address + 0x06772160, REPEAT_COUNTER_OFFSETS), 8)
-                
+
                 if result_timer_ptr_value > 28 and result_timer_ptr_value < 35:
-                    self.mem.write_float(self.get_pointer_address(self.mem.base_address + 0x067323B8, RESULT_TIMER_OFFSETS), 5.0)
+                    if self.enable_skip:
+                        self.mem.write_float(self.get_pointer_address(self.mem.base_address + 0x067323B8, RESULT_TIMER_OFFSETS), 5.0)
+                    
             except:
                 pass
 
@@ -151,28 +165,21 @@ class Assist:
             case Key.f1:
                 self.is_active = not self.is_active
                 if self.is_active:
-                    thread = threading.Thread(target=self.autofire)
-                    thread.start()
+                    threading.Thread(target=self.autofire).start()
             case Key.f2:
                 self.is_active = not self.is_active
                 if self.is_active:
-                    thread = threading.Thread(target=self.basic_slimeblast)
-                    thread.start()
+                    threading.Thread(target=self.basic_slimeblast).start()
             case Key.f3:
                 self.is_active = not self.is_active
                 if self.is_active:
-                    thread = threading.Thread(target=self.full_auto_slimepede)
-                    thread.start()
+                    threading.Thread(target=self.full_auto_slimepede).start()
             case Key.f4:
                 self.is_active = not self.is_active
                 if self.is_active:
-                    thread = threading.Thread(target=self.auto_transmute)
-                    thread.start()
+                    threading.Thread(target=self.auto_transmute).start()
             case Key.f5:
                 self.enable_skip = not self.enable_skip
-                if self.enable_skip:
-                    thread = threading.Thread(target=self.skip_rewards)
-                    thread.start()
             case Key.f6:
                 self.enable_quest_repeat = not self.enable_quest_repeat
             case _:
@@ -185,6 +192,8 @@ class Assist:
 
 if __name__ == '__main__':
     assist = Assist()
+    thread = threading.Thread(target=assist.polling_for_rewards)
+    thread.start()
 
     with Listener(on_press=assist.on_press,
                   on_release=assist.on_release) as listener:
