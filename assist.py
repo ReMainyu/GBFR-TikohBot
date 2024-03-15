@@ -14,17 +14,22 @@ from pynput.keyboard import Key, HotKey, Listener
 pydirectinput.FAILSAFE = False
 pydirectinput.PAUSE = 0.05
 
-QUEST_TIMER_OFFSETS = [0x1D0, 0x34]
-CHEST_TIMER_OFFSETS = [0x1D0, 0x4F4]
-RESULT_TIMER_OFFSETS = [0x2C8, 0x60, 0x70, 0x0, 0x88]
+class POINTERS(Enum):
+    CHEST_TIMER = QUEST_TIMER = 0x0682B150
+    RESULT_TIMER = SELECT = 0x067E28A8
+    TRANSMARVEL = 0x06822C90
+    SORT_BY_QUEST_DIFFICULTY = SELECT_QUEST_DIFFICULTY = 0x066B3B20
+
+class OFFSETS(Enum):
+    CHEST_TIMER = [0x1D0, 0x4F4]
+    RESULT_TIMER = [0x2C8, 0x60, 0x70, 0x0, 0x88]
+    QUEST_TIMER = [0x1D0, 0x34]
+    SELECT_OPTION = [0x2B0, 0x0, 0x88, 0x0, 0x294]
+    SORT_BY_QUEST_DIFFICULTY = [0x128, 0x10, 0x188, 0x70, 0x0, 0x80, 0x2E4]
+    SELECT_QUEST_DIFFICULTY = [0x128, 0x10, 0xF0, 0x70, 0x0, 0xC0, 0x180]
+    TRANSMARVEL_STOCK = [0x34]
+
 REPEAT_COUNTER_OFFSETS = [0x4A0]
-VOUCHER_OFFSETS = [0x48, 0x28, 0x28, 0x0, 0x20, 0x38, 0x4]
-TRANSMARVEL_OFFSETS = [0x34]
-SHORTCUTS_OFFSETS = [0x150, 0x10, 0x10, 0x88, 0x0, 0x294]
-FAST_TRAVEL_OFFSETS = [0x2B8, 0x0, 0x28, 0x18, 0x2E4]
-CHOICE_OFFSETS = [0x2B0, 0x8, 0x70, 0x8, 0x294]
-QUEST_SORTING_OFFSETS = [0x2C8, 0x30, 0x88, 0x0, 0x294]
-QUEST_DIFFICULTY_SWAP_OFFSETS = [0x298, 0x60, 0x140, 0x28, 0x38, 0x180]
 
 class TOWN_SHORTCUTS(Enum):
     QUEST_COUNTER = 0
@@ -93,11 +98,12 @@ class Assist:
         '''Uses the in-game fast travel to get to the POI, move towards it and use the interact key.'''
         pydirectinput.press('r')
         # Reset shortcut choice
-        self.mem.write_int(self.get_pointer_address(self.mem.base_address + 0x066024A0, SHORTCUTS_OFFSETS), 0)
+        self.mem.write_int(self.get_pointer_address(self.mem.base_address + POINTERS.SELECT.value, OFFSETS.SELECT_OPTION.value), 0)
         pydirectinput.press('enter')
+
         # Slight delay to let the reset happen before the change
         time.sleep(0.1)
-        self.mem.write_int(self.get_pointer_address(self.mem.base_address + 0x067323B8, FAST_TRAVEL_OFFSETS), choice)
+        self.mem.write_int(self.get_pointer_address(self.mem.base_address + POINTERS.SELECT.value, OFFSETS.SELECT_OPTION.value), choice)
         pydirectinput.press('enter')
         pydirectinput.keyDown('w')
         time.sleep(1.6)
@@ -111,41 +117,44 @@ class Assist:
         time.sleep(1)
 
         try:
-            choice = self.mem.read_int(self.get_pointer_address(self.mem.base_address + 0x067323B8, QUEST_SORTING_OFFSETS))
-            if choice >= 0 and choice < 3:
-                self.mem.write_int(self.get_pointer_address(self.mem.base_address + 0x067323B8, QUEST_SORTING_OFFSETS), 1)
+            choice = self.mem.read_int(self.get_pointer_address(self.mem.base_address + POINTERS.SELECT.value, OFFSETS.SELECT_OPTION.value))
+            if choice == 0 or choice == 2:
+                print(choice)
+                self.mem.write_int(self.get_pointer_address(self.mem.base_address + POINTERS.SELECT.value, OFFSETS.SELECT_OPTION.value), 1)
+                time.sleep(0.1)
 
-            time.sleep(0.1)
-            choice = self.mem.read_int(self.get_pointer_address(self.mem.base_address + 0x067323B8, CHOICE_OFFSETS))
-            if choice >= 0 and choice < 3:
-                self.mem.write_int(self.get_pointer_address(self.mem.base_address + 0x067323B8, CHOICE_OFFSETS), 2)
-                pydirectinput.press('enter')
-
-            time.sleep(0.1)
-            choice = self.mem.read_int(self.get_pointer_address(self.mem.base_address + 0x067323B8, QUEST_DIFFICULTY_SWAP_OFFSETS))
+            choice = self.mem.read_int(self.get_pointer_address(self.mem.base_address + POINTERS.SORT_BY_QUEST_DIFFICULTY.value, OFFSETS.SORT_BY_QUEST_DIFFICULTY.value))
             if choice == 0 or choice == 1:
-                self.mem.write_int(self.get_pointer_address(self.mem.base_address + 0x067323B8, QUEST_DIFFICULTY_SWAP_OFFSETS), 1)
-                pydirectinput.press('q')
-                pydirectinput.press('enter', presses=6, interval=0.05)
-                time.sleep(1.7)
-                pydirectinput.press('3')
-                pydirectinput.press('enter')
+                print(choice)
+                self.mem.write_int(self.get_pointer_address(self.mem.base_address + POINTERS.SORT_BY_QUEST_DIFFICULTY.value, OFFSETS.SORT_BY_QUEST_DIFFICULTY.value), 2)
+                time.sleep(0.1)
+            
+            pydirectinput.press('enter')
+            time.sleep(0.1)
+
+            choice = self.mem.read_int(self.get_pointer_address(self.mem.base_address + POINTERS.SELECT_QUEST_DIFFICULTY.value, OFFSETS.SELECT_QUEST_DIFFICULTY.value))
+            if choice == 0:
+                self.mem.write_int(self.get_pointer_address(self.mem.base_address + POINTERS.SELECT_QUEST_DIFFICULTY.value, OFFSETS.SELECT_QUEST_DIFFICULTY.value), 1)
+                time.sleep(0.1)
+            
+            pydirectinput.press('q')
+            pydirectinput.press('enter', presses=6, interval=0.05)
+            time.sleep(1.7)
+            pydirectinput.press('3')
+            pydirectinput.press('enter')
         except:
             pass
 
     def auto_transmute(self):
         '''Mashes the enter key and stops when vouchers is insufficient.'''
         while self.is_active:
-            try:
-                choice = self.mem.read_int(self.get_pointer_address(self.mem.base_address + 0x067323B8, CHOICE_OFFSETS))
-                print('lvl ', choice)
-                if choice == 2:
-                    vouchers = self.mem.read_int(self.get_pointer_address(self.mem.base_address + 0x05CF3FF8, VOUCHER_OFFSETS))
-                    print(vouchers)
-                    if vouchers > 24:
-                        pydirectinput.press('enter')
-            except:
-                pass
+            choice = self.mem.read_int(self.get_pointer_address(self.mem.base_address + POINTERS.SELECT.value, OFFSETS.SELECT_OPTION.value))
+            transmarvel_stock = self.mem.read_int(self.get_pointer_address(self.mem.base_address + POINTERS.TRANSMARVEL.value, OFFSETS.TRANSMARVEL_STOCK.value))
+            
+            if choice == 2:
+                pydirectinput.press('enter')
+            elif choice == 3 and transmarvel_stock >= 150:
+                pydirectinput.press('enter')
     
     def full_auto_slimepede(self):
         self.move_to_POI(0)
@@ -154,7 +163,7 @@ class Assist:
 
         while self.is_active:
             try:
-                chest_timer_ptr_value = self.mem.read_float(self.get_pointer_address(self.mem.base_address + 0x05CEC108, QUEST_TIMER_OFFSETS))
+                chest_timer_ptr_value = self.mem.read_float(self.get_pointer_address(self.mem.base_address + POINTERS.QUEST_TIMER.value, OFFSETS.QUEST_TIMER.value))
                 if chest_timer_ptr_value > 178 and chest_timer_ptr_value < 180:
                     threading.Thread(target=lambda: self.basic_slimeblast(0)).start()
                     time.sleep(180)
@@ -177,12 +186,12 @@ class Assist:
         '''Continue polling for timer values and flags and react accordingly.'''
         while True:
             try:
-                chest_timer = self.mem.read_float(self.get_pointer_address(self.mem.base_address + 0x05CEC108, CHEST_TIMER_OFFSETS))
-                result_timer = self.mem.read_float(self.get_pointer_address(self.mem.base_address + 0x067323B8, RESULT_TIMER_OFFSETS))
+                chest_timer = self.mem.read_float(self.get_pointer_address(self.mem.base_address + POINTERS.CHEST_TIMER.value, OFFSETS.CHEST_TIMER.value))
+                result_timer = self.mem.read_float(self.get_pointer_address(self.mem.base_address + POINTERS.RESULT_TIMER.value, OFFSETS.RESULT_TIMER.value))
 
-                if chest_timer > 10:
+                if chest_timer > 3:
                     if self.enable_skip:
-                        self.mem.write_float(self.get_pointer_address(self.mem.base_address + 0x05CEC108, CHEST_TIMER_OFFSETS), 0.0)
+                        self.mem.write_float(self.get_pointer_address(self.mem.base_address + POINTERS.CHEST_TIMER.value, OFFSETS.CHEST_TIMER.value), 0.0)
 
                     if self.enable_quest_repeat:
                         print(self.mem.read_int(self.get_pointer_address(self.mem.base_address + 0x06772160, REPEAT_COUNTER_OFFSETS)))
@@ -190,7 +199,7 @@ class Assist:
 
                 if result_timer > 28 and result_timer < 35:
                     if self.enable_skip:
-                        self.mem.write_float(self.get_pointer_address(self.mem.base_address + 0x067323B8, RESULT_TIMER_OFFSETS), 5.0)
+                        self.mem.write_float(self.get_pointer_address(self.mem.base_address + POINTERS.RESULT_TIMER.value, OFFSETS.RESULT_TIMER.value), 5.0)
                     
             except:
                 pass
