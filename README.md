@@ -4,7 +4,7 @@ This script is designed to alleviate the repetitive aspect of GBFR using Python.
 
 I'm aware that AHK exists, however I have Python installed and not AHK. Furthermore, I wanted to implement QoL for offline play.
 
-Updated for game version v1.1.1.
+Updated for game version v1.1.2.
 
 ## Features
 
@@ -12,9 +12,9 @@ Updated for game version v1.1.1.
 - Using fast travel to interact with NPCs.
 - Moving into one of the four designated positions in Slimepede and begin automatic fire.
 - Full auto mode:
-  - Travels to the Quest Counter, select and start the Slimepede mission. Moves into the back upon mission entry and begin automatic fire.
+  - Travels to the Quest Counter, select and start the Slimepede quest. Moves into the back upon quest entry and begin automatic fire.
   - Will continue to move into position and automatic fire but you have to turn on repeat manually.
-- Automates transmutation and transmarvel. Stops when knickknack vouchers and transmarvel gets low.
+- Automates transmutation and transmarvel. Stops when transmarvel gets low. Stopping transmutation still WIP.
 - Skips chest opening and reduce quest result to 5s.
 - Repeat quest indefinitely.
 
@@ -42,9 +42,9 @@ See Controls.
 
 - F1: Activates automatic fire for Rackam.
 - F2: Moves to one of the four designated positions before activating automatic fire.
-- F3: Travels to the Quest Counter, select and start the Slimepede mission. Moves into the back upon mission entry and begins Automatic fire. Combine with F5 & F6 for the best experience.
+- F3: Travels to the Quest Counter, select and start the Slimepede repeat. Moves into the back upon repeat entry and begins Automatic fire. Combine with F5 & F6 for the best experience.
 - F4: Activates auto transmutation. Be sure to select the right transmutation level or transmarvel before activating F4.
-- F5: Activates .
+- F5: Activates quest repeat.
 - F6: Resets the quest repeat counter.
 - r + 1: Fast travel to move and interact with the Quest Counter and talk to the NPC.
 - r + 2: Fast travel to move and interact with the Blacksmith.

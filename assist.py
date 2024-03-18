@@ -19,6 +19,7 @@ class POINTERS(Enum):
     RESULT_TIMER = SELECT = 0x067E28A8
     TRANSMARVEL = 0x06822C90
     SORT_BY_QUEST_DIFFICULTY = SELECT_QUEST_DIFFICULTY = 0x066B3B20
+    REPEAT_COUNTER = 0x06822C60
 
 class OFFSETS(Enum):
     CHEST_TIMER = [0x1D0, 0x4F4]
@@ -27,9 +28,8 @@ class OFFSETS(Enum):
     SELECT_OPTION = [0x2B0, 0x0, 0x88, 0x0, 0x294]
     SORT_BY_QUEST_DIFFICULTY = [0x128, 0x10, 0x188, 0x70, 0x0, 0x80, 0x2E4]
     SELECT_QUEST_DIFFICULTY = [0x128, 0x10, 0xF0, 0x70, 0x0, 0xC0, 0x180]
+    REPEAT_COUNTER = [0x4A0]
     TRANSMARVEL_STOCK = [0x34]
-
-REPEAT_COUNTER_OFFSETS = [0x4A0]
 
 class TOWN_SHORTCUTS(Enum):
     QUEST_COUNTER = 0
@@ -44,7 +44,7 @@ class Assist:
             self.mem = pymem.Pymem('granblue_fantasy_relink.exe')
         except:
             exit()
-        
+            
         self.is_active = False
         self.enable_skip = False
         self.enable_quest_repeat = False
@@ -119,13 +119,11 @@ class Assist:
         try:
             choice = self.mem.read_int(self.get_pointer_address(self.mem.base_address + POINTERS.SELECT.value, OFFSETS.SELECT_OPTION.value))
             if choice == 0 or choice == 2:
-                print(choice)
                 self.mem.write_int(self.get_pointer_address(self.mem.base_address + POINTERS.SELECT.value, OFFSETS.SELECT_OPTION.value), 1)
                 time.sleep(0.1)
 
             choice = self.mem.read_int(self.get_pointer_address(self.mem.base_address + POINTERS.SORT_BY_QUEST_DIFFICULTY.value, OFFSETS.SORT_BY_QUEST_DIFFICULTY.value))
             if choice == 0 or choice == 1:
-                print(choice)
                 self.mem.write_int(self.get_pointer_address(self.mem.base_address + POINTERS.SORT_BY_QUEST_DIFFICULTY.value, OFFSETS.SORT_BY_QUEST_DIFFICULTY.value), 2)
                 time.sleep(0.1)
             
@@ -193,13 +191,12 @@ class Assist:
                     if self.enable_skip:
                         self.mem.write_float(self.get_pointer_address(self.mem.base_address + POINTERS.CHEST_TIMER.value, OFFSETS.CHEST_TIMER.value), 0.0)
 
-                    if self.enable_quest_repeat:
-                        print(self.mem.read_int(self.get_pointer_address(self.mem.base_address + 0x06772160, REPEAT_COUNTER_OFFSETS)))
-                        self.mem.write_int(self.get_pointer_address(self.mem.base_address + 0x06772160, REPEAT_COUNTER_OFFSETS), 8)
-
-                if result_timer > 28 and result_timer < 35:
+                if result_timer > 5 and result_timer < 60:
                     if self.enable_skip:
                         self.mem.write_float(self.get_pointer_address(self.mem.base_address + POINTERS.RESULT_TIMER.value, OFFSETS.RESULT_TIMER.value), 5.0)
+                    
+                    if self.enable_quest_repeat:
+                        self.mem.write_int(self.get_pointer_address(self.mem.base_address + POINTERS.REPEAT_COUNTER.value, OFFSETS.REPEAT_COUNTER.value), 8)
                     
             except:
                 pass
