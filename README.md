@@ -1,10 +1,8 @@
 # GBFR Grinding Assistant
 
-This script is designed to alleviate the repetitive aspect of GBFR using Python. It supports automation and shortcuts to enhance the experience and to eliminate Carpal Tunnel Syndrome.
+This script is designed to alleviate the repetitive aspect of GBFR and apply some QoL measures using Python. It supports automation and shortcuts to enhance the experience and to eliminate Carpal Tunnel Syndrome.
 
-I'm aware that AHK exists, however I have Python installed and not AHK. Furthermore, I wanted to implement QoL for offline play.
-
-Updated for game version v1.1.2.
+Updated for game version v1.2.
 
 ## Features
 
@@ -14,7 +12,6 @@ Updated for game version v1.1.2.
 - Full auto mode:
   - Travels to the Quest Counter, select and start the Slimepede quest. Moves into the back upon quest entry and begin automatic fire.
   - Will continue to move into position and automatic fire but you have to turn on repeat manually.
-- Automates transmutation and transmarvel. Stops when transmarvel gets low. Stopping transmutation still WIP.
 - Skips chest opening and reduce quest result to 5s.
 - Repeat quest indefinitely.
 
@@ -34,7 +31,7 @@ pip install -r requirements.txt
 __Always__ run GBFR first before the script.
 
 Go to Game Options > Gameplay.
-- Ensure "Quest Cutscene Auto-Skip" is set to On and "Loading Screen Skip" is set to Auto Skip.
+- Ensure "Quest Cutscene Auto-Skip" is set to __On__ and "Loading Screen Skip" is set to __Auto Skip__.
 
 See Controls.
 
@@ -43,9 +40,8 @@ See Controls.
 - F1: Activates automatic fire for Rackam.
 - F2: Moves to one of the four designated positions before activating automatic fire.
 - F3: Travels to the Quest Counter, select and start the Slimepede repeat. Moves into the back upon repeat entry and begins Automatic fire. Combine with F5 & F6 for the best experience.
-- F4: Activates auto transmutation. Be sure to select the right transmutation level or transmarvel before activating F4.
-- F5: Activates quest repeat.
-- F6: Resets the quest repeat counter.
+- F5: Toggle skip chest and reward timer.
+- F6: Toggle quest repeat.
 - r + 1: Fast travel to move and interact with the Quest Counter and talk to the NPC.
 - r + 2: Fast travel to move and interact with the Blacksmith.
 - r + 3: Fast travel to move and interact with Sierokarte.
